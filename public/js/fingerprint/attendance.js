@@ -330,7 +330,10 @@ let handleCard = async (item) => {
     card.appendTo("#card");
 };
 async function check(_sampleData) {
-    await fetch("http://127.0.0.1:7000/identify", {
+    // Use environment variable or fallback to production URL
+    const API_URL = window.FINGERPRINT_API_URL || 'https://lams-fingerprint-api.onrender.com';
+    
+    await fetch(`${API_URL}/identify`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+    <script>
+        // Pass fingerprint API URL from Laravel config to JavaScript
+        window.FINGERPRINT_API_URL = "{{ config('fingerprint.api_url') }}";
+    </script>
+    
     <div class="container-fluid w-100">
         <div class="row justify-content-center">
             <div class="col-md-5 col-12" id="card">
