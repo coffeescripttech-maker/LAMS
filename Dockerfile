@@ -66,6 +66,6 @@ EXPOSE 80
 # Start application
 CMD php artisan migrate --force && \
     php artisan storage:link && \
-    php artisan config:clear && \
-    php artisan cache:clear && \
+    php artisan config:cache && \
+    php artisan route:cache && \
     apache2-foreground
