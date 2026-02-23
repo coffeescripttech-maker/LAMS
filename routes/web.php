@@ -23,6 +23,20 @@ Route::get('/test-session', function () {
     ]);
 });
 
+// Test flash data
+Route::get('/test-flash', function () {
+    session()->flash('test_message', 'This is a flash message!');
+    return redirect('/test-flash-show');
+});
+
+Route::get('/test-flash-show', function () {
+    return response()->json([
+        'session_id' => session()->getId(),
+        'flash_message' => session('test_message', 'Flash message not found'),
+        'all_session' => session()->all(),
+    ]);
+});
+
 // Auth::routes(['verify' => true]);
 Auth::routes();
 

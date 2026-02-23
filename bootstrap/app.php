@@ -19,11 +19,6 @@ return
                      \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB
         );
         
-        // Temporarily disable CSRF for debugging
-        $middleware->validateCsrfTokens(except: [
-            '*'
-        ]);
-        
         $middleware->group('web', [
             \Illuminate\Cookie\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
@@ -31,8 +26,6 @@ return
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \Illuminate\Session\Middleware\AuthenticateSession::class,
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
         $middleware->group('api', [
