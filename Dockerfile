@@ -56,9 +56,13 @@ RUN echo '<Directory /var/www/html/public>\n\
     Options Indexes FollowSymLinks\n\
     AllowOverride All\n\
     Require all granted\n\
-</Directory>' > /etc/apache2/conf-available/laravel.conf
+</Directory>\n\
+\n\
+# Set environment variables for proper session handling\n\
+SetEnvIf X-Forwarded-Proto https HTTPS=on' > /etc/apache2/conf-available/laravel.conf
 
 RUN a2enconf laravel
+RUN a2enmod headers
 
 # Expose port
 EXPOSE 80
