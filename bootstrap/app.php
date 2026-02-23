@@ -19,6 +19,11 @@ return
                      \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB
         );
         
+        // Temporarily disable CSRF for debugging
+        $middleware->validateCsrfTokens(except: [
+            '*'
+        ]);
+        
         $middleware->group('web', [
             \Illuminate\Cookie\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
