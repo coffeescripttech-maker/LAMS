@@ -23,10 +23,14 @@ services:
         value: errorlog
       - key: SESSION_DRIVER
         value: database
+      - key: SESSION_LIFETIME
+        value: 120
+      - key: SESSION_ENCRYPT
+        value: false
       - key: SESSION_SECURE_COOKIE
-        value: true
-      - key: SESSION_SAME_SITE
-        value: lax
+        value: false
+      - key: SANCTUM_STATEFUL_DOMAINS
+        value: lams-1-njuv.onrender.com
       - key: CACHE_DRIVER
         value: file
       - key: QUEUE_CONNECTION

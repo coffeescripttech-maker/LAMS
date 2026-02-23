@@ -66,6 +66,7 @@ EXPOSE 80
 # Start application
 CMD php artisan migrate --force && \
     php artisan storage:link && \
+    chmod -R 777 /var/www/html/storage && \
     php artisan config:cache && \
     php artisan route:cache && \
     apache2-foreground
