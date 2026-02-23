@@ -7,6 +7,22 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Debug route to test session
+Route::get('/test-session', function () {
+    $sessionId = session()->getId();
+    $testValue = session('test_value', 'not set');
+    
+    session(['test_value' => 'Session is working! ' . now()]);
+    
+    return response()->json([
+        'session_id' => $sessionId,
+        'previous_value' => $testValue,
+        'new_value' => session('test_value'),
+        'session_driver' => config('session.driver'),
+        'all_session_data' => session()->all(),
+    ]);
+});
+
 // Auth::routes(['verify' => true]);
 Auth::routes();
 
