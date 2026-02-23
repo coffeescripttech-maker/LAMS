@@ -31,7 +31,7 @@ const state = {
     handleModal: (name) => {
         $(`#image-modal`).attr(
             "src",
-            `http://localhost:8000/storage/credentials/${state.user.email}/${name}.png`
+            `https://lams-1-njuv.onrender.com/storage/credentials/${state.user.email}/${name}.png`
         );
         $("#main-modal").modal("show");
     },

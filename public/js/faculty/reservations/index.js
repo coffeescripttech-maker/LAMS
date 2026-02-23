@@ -219,7 +219,7 @@ const state = {
             );
             img.src = URL.createObjectURL(state.file);
         }
-        $(`.event`).attr("src", `http://localhost:8000/img/default.jpg`);
+        $(`.event`).attr("src", `https://lams-1-njuv.onrender.com/img/default.jpg`);
     },
     onStore: async (e) => {
         e.preventDefault();

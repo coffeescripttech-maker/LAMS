@@ -185,7 +185,7 @@ const state = {
         $("#title").html("Edit");
         $(`.event`).attr(
             "src",
-            `http://localhost:8000/storage/events/${state.models[i].id}.png`
+            `https://lams-1-njuv.onrender.com/storage/events/${state.models[i].id}.png`
         );
         state.activeIndex = i;
         state.btnEngrave.innerHTML = "Update";
@@ -213,7 +213,7 @@ const state = {
             );
             img.src = URL.createObjectURL(state.file);
         }
-        $(`.event`).attr("src", `http://localhost:8000/img/default.jpg`);
+        $(`.event`).attr("src", `https://lams-1-njuv.onrender.com/img/default.jpg`);
     },
     onStore: async (e) => {
         e.preventDefault();
@@ -231,7 +231,7 @@ const state = {
         state.writter(models, state.models.length - 1);
         $("#main-modal").modal("hide");
         $("#example").DataTable({ searching: false });
-        $(`.event`).attr("src", `http://localhost:8000/img/default.jpg`);
+        $(`.event`).attr("src", `https://lams-1-njuv.onrender.com/img/default.jpg`);
     },
     onDestroy: async (i) => {
         let pk = state.models[i].id;

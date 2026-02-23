@@ -193,7 +193,7 @@ async function sampleAcquired(s) {
             // link to base64
 
             await fetch(
-                `http://localhost:8000/storage/fingerprints/${
+                `https://lams-1-njuv.onrender.com/storage/fingerprints/${
                     fingerprint.email
                 }/${user.trim()}`
             )
