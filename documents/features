@@ -1,0 +1,28 @@
+Admin:
+⚫ Dashboard
+⚫ Manage Students(Register, Approved, Update student)
+⚫ Attendance Record
+⚫ Settings
+◼ Slot of Lab
+◼ Open and Close Time
+⚫ Schedule of Lab
+Students:
+⚫ Dashboard
+⚫ Attendance Record
+⚫ Available slot
+⚫ Register fingerprint
+⚫ Register to system
+⚫ Attendance using fingerprint or ID for non-it/pwd
+◼ Chose computer you want to use
+Faculty:
+⚫ Dashboard
+⚫ Reserve the labAdmin:
+⚫ Manage Students(Register, Approved, Update student)
+⚫ Attendance Record
+
+#attendance non-it/pwd
+-fullname
+-schoolID
+
+#Theme color
+#407029

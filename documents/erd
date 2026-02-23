@@ -1,0 +1,51 @@
+--users--
+-fname str
+-mname str
+-lname str
+-mobile str
+-address str
+-dob date
+-occupation str
+-is_male bool
+-verified bool
+-finger_print str
+-role enum (admin, faculty, student)
+-section str
+-email str
+-password str
+
+--attendance--
+-user_id int (nullable)
+-name (fullname )
+-section
+-date date
+-time_in time
+-time_out time
+-remarks str
+-com_no
+
+--schedule--
+-start_time time
+-end_time time
+-date date
+-book_by int (faculty)
+
+--settings--
+-lab_name str
+-available_slots
+-maintainance_slots
+-open_hour
+-close_hour
+
+--section---
+-name -str
+-is_ecoast( it student) -boolean
+
+--logs--
+-user_id int
+-action str
+
+--reservation--
+-faculty_id
+-schedule_id
+-status (pending, reserved, rejected)
