@@ -26,5 +26,5 @@ COPY index.py .
 # Expose port
 EXPOSE 7000
 
-# Run the application
-CMD ["python", "index.py"]
+# Run the application with Gunicorn (production WSGI server)
+CMD ["gunicorn", "--bind", "0.0.0.0:7000", "--workers", "2", "--timeout", "120", "index:app"]

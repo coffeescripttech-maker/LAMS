@@ -12,6 +12,25 @@ CORS(app)
 SIMILARITY_THRESHOLD = 0.75
 
 
+@app.route('/', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        "status": "healthy",
+        "service": "LAMS Fingerprint API",
+        "version": "1.0.0",
+        "endpoints": {
+            "identify": "/identify (POST)"
+        }
+    })
+
+
+@app.route('/health', methods=['GET'])
+def health():
+    """Alternative health check endpoint"""
+    return jsonify({"status": "ok"})
+
+
 def base64_to_image(base64_str):
     # Remove data URL prefix if present
     if 'base64,' in base64_str:
