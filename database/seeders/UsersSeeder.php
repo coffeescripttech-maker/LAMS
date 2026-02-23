@@ -15,6 +15,12 @@ class UsersSeeder extends Seeder
      */
     public function run(): void
     {
+        // Check if users already exist
+        if (DB::table('users')->count() > 0) {
+            $this->command->info('Users already exist. Skipping seeder.');
+            return;
+        }
+
         DB::table('users')->insert([
             [
                 'fname' => 'Jon',
