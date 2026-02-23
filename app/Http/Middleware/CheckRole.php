@@ -18,12 +18,17 @@ class CheckRole
     {
         $user = Auth::user();
 
-        // Check if the user has the required role
-        if ($user && in_array($user->role, $roles) && $user->email_verified_at != null) {
+        // If user is not authenticated, redirect to login
+        if (!$user) {
+            return redirect('/login');
+        }
+
+        // Check if the user has the required role and is verified
+        if (in_array($user->role, $roles) && $user->email_verified_at != null) {
             return $next($request);
         }
 
-        // Redirect or respond with an error
-        return redirect()->intended("/$user->role/dashboard");
+        // If user doesn't have the right role, redirect to their dashboard
+        return redirect("/$user->role/dashboard");
     }
 }

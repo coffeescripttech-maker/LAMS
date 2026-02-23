@@ -22,13 +22,19 @@ services:
       - key: LOG_CHANNEL
         value: errorlog
       - key: SESSION_DRIVER
-        value: database
+        value: file
       - key: SESSION_LIFETIME
         value: 120
       - key: SESSION_ENCRYPT
         value: false
       - key: SESSION_SECURE_COOKIE
         value: false
+      - key: SESSION_HTTP_ONLY
+        value: true
+      - key: SESSION_SAME_SITE
+        value: lax
+      - key: SESSION_PATH
+        value: /
       - key: SANCTUM_STATEFUL_DOMAINS
         value: lams-1-njuv.onrender.com
       - key: CACHE_DRIVER
