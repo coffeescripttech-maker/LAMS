@@ -51,7 +51,7 @@
     <!-- ======= Header ======= -->
     <input type="hidden" value="{{ Auth::user() }}" id="user_id">
     <header id="header" class="header fixed-top d-flex align-items-center">
-        <input type="hidden" value="{{ $_COOKIE['XSRF-TOKEN'] }}" id="token">
+        <input type="hidden" value="{{ csrf_token() }}" id="token">
         <div class="d-flex align-items-center justify-content-between">
             <a href="/" class="logo d-flex align-items-center justify-content-center">
                 <img src="{{ asset('img/favicon.png') }}" alt="" />

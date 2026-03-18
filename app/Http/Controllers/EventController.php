@@ -10,16 +10,14 @@ class EventController extends Controller
 {
     public function index(Request $request)
     {
-        $event = Event::whereNull('deleted_at')
-            ->get();
-        return response()->json($event);
+        $events = Event::all();
+        return response()->json($events);
     }
 
     public function list(Request $request)
     {
-        $event = Event::whereNull('deleted_at')
-            ->get();
-        return response()->json($event);
+        $events = Event::all();
+        return response()->json($events);
     }
 
     public function save(Request $request)
@@ -67,8 +65,7 @@ class EventController extends Controller
 
     public function destroy(Event $event)
     {
-        $event->deleted_at = now();
-        $event->update();
-        return Response::json(array('success' => true));
+        $event->delete(); // This will soft delete using the SoftDeletes trait
+        return response()->json(['success' => true]);
     }
 }

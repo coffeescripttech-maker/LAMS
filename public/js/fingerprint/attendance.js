@@ -53,7 +53,9 @@ var FingerprintSdkTest = (function () {
             // showMessage("Device disconnected");
         };
         this.sdk.onCommunicationFailed = function (e) {
-            alert("Communication Failed");
+            console.warn("Fingerprint reader communication failed - this is normal if no physical reader is connected");
+            // Don't show alert for communication failures in production
+            // alert("Communication Failed");
             // Detects if there is a failure in communicating with U.R.U web SDK
             // showMessage("Communinication Failed");
         };

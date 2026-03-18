@@ -11,30 +11,59 @@ const request = async (url, params, method = "GET") => {
         },
         credentials: 'same-origin', // Include cookies for session-based auth
     };
+    
     if (params) {
         if (method === "GET") {
             url += params != "" ? `?${objectToQueryString(params)}` : "";
         } else {
             options.body = serialized(params);
-            $.post($(this).attr("building"), options.body, function (data) {});
-            // options.data = file;
         }
     }
-    const response = await fetch(url, options);
-    if (response.status === 404 || response.status === 500) {
+    
+    try {
+        const response = await fetch(url, options);
+        
+        if (response.status === 401) {
+            Swal.fire({
+                icon: "error",
+                title: "Authentication Required",
+                text: "Please log in to continue.",
+                showConfirmButton: true,
+            }).then(() => {
+                window.location.href = '/login';
+            });
+            return null;
+        }
+        
+        if (response.status === 404 || response.status === 500) {
+            const errorText = await response.text();
+            console.error('Server Error:', errorText);
+            Swal.fire({
+                icon: "error",
+                title: "Server Error",
+                showConfirmButton: false,
+                timer: 3000,
+                text: "The server responded with an unexpected status!",
+            });
+            return null;
+        } 
+        
+        if (response.status === 204) {
+            return null;
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Network Error:', error);
         Swal.fire({
             icon: "error",
-            title: "Oops...",
-            showConfirmButton: false,
-            timer: 3000,
-            text: "The server responded with an unexpected status!",
+            title: "Network Error",
+            text: "Failed to connect to the server. Please check your connection.",
+            showConfirmButton: true,
         });
-    } else if (response.status === 204) {
         return null;
     }
-
-    const result = await response.json();
-    return result;
 };
 const objectToQueryString = (obj) => {
     let condition = Object.keys(obj)

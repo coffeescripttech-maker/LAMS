@@ -28,12 +28,53 @@ class UserController extends Controller
 
     public function save(Request $request)
     {
-        $request->merge([
-            'email_verified_at' => now(),
-        ]);
-        $user = User::create($request->all());
+        try {
+            // Validate required fields
+            $validationRules = [
+                'fname' => 'required|string|max:255',
+                'lname' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'role' => 'required|in:admin,faculty,student',
+                'mobile' => 'required|string|max:15',
+                'address' => 'required|string|max:500',
+                'dob' => 'required|date',
+                'is_male' => 'required|boolean',
+            ];
 
-        return Response::json($user, 200);
+            // Add role-specific validation
+            if ($request->role === 'student') {
+                $validationRules['schoolId'] = 'required|string|max:255';
+                $validationRules['verified'] = 'required|boolean';
+            }
+
+            if ($request->role === 'faculty') {
+                $validationRules['occupation'] = 'required|string|max:255';
+            }
+
+            $request->validate($validationRules);
+
+            $userData = $request->all();
+            
+            // Set default values
+            $userData['email_verified_at'] = now();
+            $userData['password'] = bcrypt($userData['password'] ?? 'password');
+            
+            // Ensure boolean fields are properly handled
+            $userData['is_male'] = (bool)$userData['is_male'];
+            
+            if ($request->role === 'student') {
+                $userData['verified'] = (bool)$userData['verified'];
+            }
+            
+            $user = User::create($userData);
+
+            return Response::json($user, 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return Response::json(['error' => 'Validation failed', 'messages' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            \Log::error('User creation failed: ' . $e->getMessage());
+            return Response::json(['error' => 'Failed to create user', 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function student(Request $request, User $user)

@@ -16,6 +16,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="card-body pb-0">
+                            <input type="hidden" value="{{ $role }}" id="role">
                             <div class="d-flex justify-content-end mb-5">
                                 <button class="btn btn-success rounded" id="btn-new" data-bs-toggle="modal"
                                     data-bs-target="#main-modal"><i class="bi bi-plus-circle-dotted"></i></button>
@@ -49,6 +50,12 @@
     @endsection
 
     @section('javascript')
+        <script>
+            // Set fingerprint API URL for production
+            window.FINGERPRINT_API_URL = '{{ config("fingerprint.api_url") }}';
+        </script>
+        <script src="{{ asset('js/fingerprint/production-config.js') }}"></script>
+        <script src="{{ asset('js/fingerprint/websdk-override.js') }}"></script>
         <script src="{{ asset('js/fingerprint/es6-shim.js') }}"></script>
         <script src="{{ asset('js/fingerprint/websdk.client.bundle.min.js') }}"></script>
         <script src="{{ asset('js/fingerprint/fingerprint.sdk.min.js') }}"></script>
