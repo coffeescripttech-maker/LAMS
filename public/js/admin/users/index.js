@@ -177,14 +177,24 @@ const state = {
         e.preventDefault();
         let params = $("#set-Model").serializeArray();
         params.push({ name: "password", value: "password" });
-        let models = await fetch.store(state.entity, params);
-        state.models.push(models);
-        $("#example").DataTable().destroy();
-        state.writter(models, state.models.length - 1);
-        $("#example").DataTable({ searching: false });
-        $("#main-modal").modal("hide");
-        $("#example").DataTable();
-        $("#set-Model").trigger("reset");
+        
+        try {
+            let models = await fetch.store(state.entity, params);
+            if (models && models.id) {
+                state.models.push(models);
+                $("#example").DataTable().destroy();
+                state.writter(models, state.models.length - 1);
+                $("#example").DataTable({ searching: false });
+                $("#main-modal").modal("hide");
+                $("#example").DataTable();
+                $("#set-Model").trigger("reset");
+            } else {
+                console.error("Failed to create user: Invalid response", models);
+            }
+        } catch (error) {
+            console.error("Error creating user:", error);
+            // The error is already handled by fetch.js, so we don't need to do anything else here
+        }
     },
     onDestroy: async (i) => {
         let pk = state.models[i].id;

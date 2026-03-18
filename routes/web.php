@@ -3,6 +3,24 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/test-events-api', function () {
+    try {
+        $events = App\Models\Event::with(['comments.user'])->get();
+        return response()->json([
+            'success' => true,
+            'count' => $events->count(),
+            'events' => $events
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ], 500);
+    }
+});
+
 Route::get('/', function () {
     return view('welcome');
 });

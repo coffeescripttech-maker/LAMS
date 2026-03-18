@@ -34,8 +34,8 @@ class UserController extends Controller
                 'fname' => 'required|string|max:255',
                 'lname' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
+                'mobile' => 'required|string|max:15|unique:users,mobile',
                 'role' => 'required|in:admin,faculty,student',
-                'mobile' => 'required|string|max:15',
                 'address' => 'required|string|max:500',
                 'dob' => 'required|date',
                 'is_male' => 'required|boolean',
@@ -43,7 +43,7 @@ class UserController extends Controller
 
             // Add role-specific validation
             if ($request->role === 'student') {
-                $validationRules['schoolId'] = 'required|string|max:255';
+                $validationRules['schoolId'] = 'required|string|max:255|unique:users,schoolId';
                 $validationRules['verified'] = 'required|boolean';
             }
 
@@ -71,6 +71,24 @@ class UserController extends Controller
             return Response::json($user, 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return Response::json(['error' => 'Validation failed', 'messages' => $e->errors()], 422);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database constraint violations
+            if ($e->getCode() === '23505' || strpos($e->getMessage(), 'duplicate key') !== false) {
+                $message = 'A user with this information already exists.';
+                
+                if (strpos($e->getMessage(), 'users_email_unique') !== false) {
+                    $message = 'A user with this email address already exists.';
+                } elseif (strpos($e->getMessage(), 'users_mobile_unique') !== false) {
+                    $message = 'A user with this mobile number already exists.';
+                } elseif (strpos($e->getMessage(), 'users_schoolid_unique') !== false) {
+                    $message = 'A user with this student ID already exists.';
+                }
+                
+                return Response::json(['error' => 'Duplicate entry', 'message' => $message], 409);
+            }
+            
+            \Log::error('Database error during user creation: ' . $e->getMessage());
+            return Response::json(['error' => 'Database error', 'message' => 'Failed to create user due to database constraints.'], 500);
         } catch (\Exception $e) {
             \Log::error('User creation failed: ' . $e->getMessage());
             return Response::json(['error' => 'Failed to create user', 'message' => $e->getMessage()], 500);

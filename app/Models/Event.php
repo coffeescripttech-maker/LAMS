@@ -21,22 +21,18 @@ class Event extends Model
     
     protected $casts = [
         'likes' => 'array',
+        'has_image' => 'boolean',
+        'description' => 'string',
     ];
-    
-    protected $appends = [
-        'list',
-    ];
-
-    function getListAttribute()
-    {
-        if ($this->comments) {
-            return $this->comments;
-        }
-        return null;
-    }
 
     public function comments()
     {
         return $this->hasMany(Comment::class, "event_id");
+    }
+    
+    // Add a method to get comments when needed instead of using appends
+    public function getCommentsListAttribute()
+    {
+        return $this->comments()->with('user')->get();
     }
 }

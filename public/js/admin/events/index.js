@@ -60,12 +60,19 @@ const state = {
         $("#loading").css("visibility", "show");
         $("#example").DataTable().destroy();
         $("#tbody").empty();
-        let models = await fetch.globalSearch(state.models, val);
-        if (models) {
-            await models.forEach(
-                async (model, i) => await state.writter(model, i)
-            );
+        
+        try {
+            let models = await fetch.globalSearch(state.models, val);
+            if (models && Array.isArray(models)) {
+                await models.forEach(
+                    async (model, i) => await state.writter(model, i)
+                );
+            }
+        } catch (error) {
+            console.error("Error searching events:", error);
+            $("#tbody").append('<tr><td colspan="5" class="text-center text-danger">Search failed. Please try again.</td></tr>');
         }
+        
         $("#example").DataTable({ searching: false });
         $("#loading").css("visibility", "hidden");
     },
@@ -73,11 +80,22 @@ const state = {
         $("#loading").css("visibility", "show");
         $("#example").DataTable().destroy();
         $("#tbody").empty();
-        state.models = await fetch.translate(state.entity);
-        if (state.models)
-            await state.models.forEach(
-                async (model, i) => await state.writter(model, i)
-            );
+        
+        try {
+            state.models = await fetch.translate(state.entity);
+            if (state.models && Array.isArray(state.models)) {
+                await state.models.forEach(
+                    async (model, i) => await state.writter(model, i)
+                );
+            } else {
+                console.error("Invalid events data received:", state.models);
+            }
+        } catch (error) {
+            console.error("Error fetching events:", error);
+            // Show user-friendly error message
+            $("#tbody").append('<tr><td colspan="5" class="text-center text-danger">Failed to load events. Please refresh the page.</td></tr>');
+        }
+        
         $("#example").DataTable({ searching: false });
         $("#loading").css("visibility", "hidden");
     },
@@ -185,19 +203,26 @@ const state = {
         e.preventDefault();
 
         let params = $("#set-Model").serializeArray();
-        params.push(state.base64);
-        if (state.base64) {
+        if (state.base64 && state.base64.value) {
+            params.push(state.base64);
             params.push({ name: "has_image", value: true });
         } else {
             params.push({ name: "has_image", value: false });
         }
-        let models = await fetch.store(state.entity, params);
-        state.models.push(models);
-        $("#example").DataTable().destroy();
-        state.writter(models, state.models.length - 1);
-        $("#main-modal").modal("hide");
-        $("#example").DataTable({ searching: false });
-        $(`.event`).attr("src", `https://lams-1-njuv.onrender.com/img/default.jpg`);
+        
+        try {
+            let models = await fetch.store(state.entity, params);
+            if (models && models.id) {
+                state.models.push(models);
+                $("#example").DataTable().destroy();
+                state.writter(models, state.models.length - 1);
+                $("#main-modal").modal("hide");
+                $("#example").DataTable({ searching: false });
+                $(`.event`).attr("src", `https://lams-1-njuv.onrender.com/img/default.jpg`);
+            }
+        } catch (error) {
+            console.error("Error creating event:", error);
+        }
     },
     onDestroy: async (i) => {
         let pk = state.models[i].id;

@@ -35,6 +35,33 @@ const request = async (url, params, method = "GET") => {
             return null;
         }
         
+        if (response.status === 409) {
+            const errorData = await response.json();
+            Swal.fire({
+                icon: "warning",
+                title: "Duplicate Entry",
+                text: errorData.message || "This information already exists in the system.",
+                showConfirmButton: true,
+            });
+            return null;
+        }
+        
+        if (response.status === 422) {
+            const errorData = await response.json();
+            let errorMessage = "Validation failed.";
+            if (errorData.messages) {
+                const messages = Object.values(errorData.messages).flat();
+                errorMessage = messages.join('\n');
+            }
+            Swal.fire({
+                icon: "error",
+                title: "Validation Error",
+                text: errorMessage,
+                showConfirmButton: true,
+            });
+            return null;
+        }
+        
         if (response.status === 404 || response.status === 500) {
             const errorText = await response.text();
             console.error('Server Error:', errorText);
