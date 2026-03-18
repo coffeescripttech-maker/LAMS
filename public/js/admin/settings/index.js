@@ -85,7 +85,7 @@ const state = {
             find: ["fa fa-edit", "Edit", "info"],
             delete: ["fa fa-trash", "Delete", "danger"],
         },
-        baseUrl: "../api",
+        baseUrl: "api",
     },
 
     models: [],
@@ -264,7 +264,7 @@ const state = {
         }
     },
     handleDeleteComment: async (pk) => {
-        await fetch.destroy({ baseUrl: "../api", name: "comment" }, pk);
+        await fetch.destroy({ baseUrl: "api", name: "comment" }, pk);
         state.handleShowComment(state.activeIndex);
     },
 

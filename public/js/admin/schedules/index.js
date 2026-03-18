@@ -100,7 +100,7 @@ const state = {
             edit: ["bi bi-pen", "Edit", "info"],
             delete: ["bi bi-trash", "Delete", "danger"],
         },
-        baseUrl: "../api",
+        baseUrl: "api",
     },
 
     models: [],

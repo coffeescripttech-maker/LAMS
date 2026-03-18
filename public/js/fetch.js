@@ -1,28 +1,16 @@
 const request = async (url, params, method = "GET") => {
     const token = $("#token").val();
-
-    // const csrfToken = getCsrfToken();
-    // add some function to check if the token is expired
-    // if (token == "") {
-    //     Swal.fire({
-    //         icon: "error",
-    //         title: "Oops...",
-    //         showConfirmButton: false,
-    //         timer: 3000,
-    //         text: "The server responded with an unexpected status!",
-    //     });
-    //     return;
-    // }
+    const csrfToken = getCsrfToken();
 
     const options = {
         method,
         headers: {
             "Content-Type": "application/json",
-            enctype: "multipart/form-data",
-            Authorization: `Bearer ${token || ""}`,
-            // "X-CSRF-TOKEN": csrfToken,
+            "X-CSRF-TOKEN": csrfToken,
+            "X-Requested-With": "XMLHttpRequest",
         },
-    }; //, mimeType: "multipart/form-data"
+        credentials: 'same-origin', // Include cookies for session-based auth
+    };
     if (params) {
         if (method === "GET") {
             url += params != "" ? `?${objectToQueryString(params)}` : "";
@@ -85,7 +73,7 @@ const find = (url, id) => {
     request(`${url}/${id}/find`);
 };
 const store = async (_entity, params, withMsge = true) => {
-    let url = `/${_entity.baseUrl}/${pluralize(_entity.name)}/save`;
+    let url = `/api/${pluralize(_entity.name)}/save`;
     const model = await request(url, params, "POST");
     if (model) {
         if (withMsge) {
@@ -118,7 +106,7 @@ const engrave = async (url, params, willEngrave = false) => {
     }
 };
 const update = async (_entity, pk, params, withMsge = true) => {
-    let url = `/${_entity.baseUrl}/${pluralize(_entity.name)}/${pk}/update`;
+    let url = `/api/${pluralize(_entity.name)}/${pk}/update`;
     const model = await request(url, params, "PUT");
     if (model) {
         if (withMsge) {
@@ -167,9 +155,7 @@ const destroy = async (_entity, pk, willRemove = true) => {
         confirmButtonText: "Yes, delete it!",
     });
     if (result) {
-        let url = `/${_entity.baseUrl}/${pluralize(
-            _entity.name
-        )}/${pk}/destroy`;
+        let url = `/api/${pluralize(_entity.name)}/${pk}/destroy`;
         const response = await request(url, "", "DELETE");
         if (response) {
             if (response.success) {
@@ -209,7 +195,7 @@ const translate = async (_entity, key = "") => {
     } else {
         params = key;
     }
-    const _models = await ask(`./${baseUrl}/${pluralize(entity)}`, params);
+    const _models = await ask(`/api/${pluralize(entity)}`, params);
     return _models;
 };
 const writer = (_entity, model) => {

@@ -1,0 +1,30 @@
+/* Bus CSS - Additional platform styles */
+
+.bus-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bus-loading {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Additional platform-specific styles */
+.platform-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.platform-btn {
+    transition: all 0.3s ease;
+}
+
+.platform-btn:hover {
+    transform: translateY(-2px);
+}

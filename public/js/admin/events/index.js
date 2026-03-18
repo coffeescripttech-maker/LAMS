@@ -33,7 +33,7 @@ const state = {
             find: ["fa fa-edit", "Edit", "info"],
             delete: ["fa fa-trash", "Delete", "danger"],
         },
-        baseUrl: "../api",
+        baseUrl: "api",
     },
 
     models: [],
@@ -230,7 +230,7 @@ const state = {
         }
     },
     handleDeleteComment: async (pk) => {
-        await fetch.destroy({ baseUrl: "../api", name: "comment" }, pk);
+        await fetch.destroy({ baseUrl: "api", name: "comment" }, pk);
         state.handleShowComment(state.activeIndex);
     },
 
@@ -238,7 +238,7 @@ const state = {
         await $("#tbody-comment").empty();
         state.activeIndex = i;
         var id = state.models[i].id;
-        var models = await fetch.ask("../api/comments", { key: id });
+        var models = await fetch.ask("/api/comments", { key: id });
         await models.map(async (comment, i) => {
             let tr = $("<tr>", {
                 class: `${(i + 1) % 2 == 1 ? "odd" : "even"}`,

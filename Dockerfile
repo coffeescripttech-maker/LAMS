@@ -40,6 +40,11 @@ RUN npm install && npm run build
 # Create symbolic link for storage
 RUN php artisan storage:link || true
 
+# Create storage directories
+RUN mkdir -p /var/www/html/storage/app/public/events \
+    && mkdir -p /var/www/html/storage/app/public/credentials \
+    && mkdir -p /var/www/html/storage/app/public/fingerprints
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \

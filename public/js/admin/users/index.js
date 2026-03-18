@@ -35,7 +35,7 @@ const state = {
             find: ["fa fa-edit", "Edit", "info"],
             delete: ["fa fa-trash", "Delete", "danger"],
         },
-        baseUrl: "../../api",
+        baseUrl: "api",
     },
 
     models: [],
@@ -74,7 +74,7 @@ const state = {
         $("#loading").css("visibility", "show");
         $("#example").DataTable().destroy();
         $("#tbody").empty();
-        state.models = await fetch.ask(`${state.entity.baseUrl}/users`, {
+        state.models = await fetch.ask(`/api/users`, {
             role: $("#role").val(),
         });
         if (state.models)
