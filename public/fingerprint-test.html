@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint WebSDK Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 5px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.loading {
+            background: #ffc107;
+            color: #000;
+        }
+        .status.success {
+            background: #28a745;
+            color: white;
+        }
+        .status.error {
+            background: #dc3545;
+            color: white;
+        }
+        .status.warning {
+            background: #ff9800;
+            color: white;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        #console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .info { color: #4fc3f7; }
+        .success-log { color: #81c784; }
+        .error-log { color: #e57373; }
+        .warning-log { color: #ffb74d; }
+        .code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .alert-danger {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Fingerprint WebSDK Diagnostic Tool</h1>
+        
+        <div class="alert alert-info">
+            <strong>Purpose:</strong> This page tests if the DigitalPersona WebSDK is properly loaded and accessible in your system.
+        </div>
+
+        <div class="test-section">
+            <h3>1. SDK Loading Status</h3>
+            <p>Fingerprint SDK: <span id="sdk-status" class="status loading">Checking...</span></p>
+            <p>WebApi: <span id="webapi-status" class="status loading">Checking...</span></p>
+            <p>Configuration: <span id="config-status" class="status loading">Checking...</span></p>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Environment Information</h3>
+            <p><strong>Hostname:</strong> <span id="hostname" class="code">-</span></p>
+            <p><strong>Protocol:</strong> <span id="protocol" class="code">-</span></p>
+            <p><strong>Environment:</strong> <span id="environment" class="code">-</span></p>
+            <p><strong>WebSDK Enabled:</strong> <span id="websdk-enabled" class="code">-</span></p>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Device Detection</h3>
+            <p>Status: <span id="device-status" class="status loading">Not tested</span></p>
+            <p id="device-info">Click "Test Reader Connection" to check for connected devices.</p>
+            <button id="test-devices" onclick="testDevices()">Test Reader Connection</button>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Actions</h3>
+            <button onclick="runFullDiagnostic()">Run Full Diagnostic</button>
+            <button onclick="clearConsole()">Clear Console</button>
+            <button onclick="location.reload()">Reload Page</button>
+        </div>
+
+        <div class="test-section">
+            <h3>5. Console Output</h3>
+            <div id="console-output">Waiting for tests...</div>
+        </div>
+
+        <div class="alert alert-info">
+            <strong>Note:</strong> If device detection fails, this is normal if:
+            <ul>
+                <li>No physical fingerprint reader is connected</li>
+                <li>DigitalPersona SDK is not installed on this machine</li>
+                <li>You're accessing from a remote location without a reader</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Load Fingerprint SDK -->
+    <script src="js/fingerprint/production-config.js"></script>
+    <script src="js/fingerprint/websdk-override.js"></script>
+    <script src="js/fingerprint/es6-shim.js"></script>
+    <script src="js/fingerprint/websdk.client.bundle.min.js"></script>
+    <script src="js/fingerprint/fingerprint.sdk.min.js"></script>
+
+    <script>
+        let consoleOutput = document.getElementById('console-output');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type + '-log';
+            consoleOutput.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            console.log(message);
+        }
+
+        function clearConsole() {
+            consoleOutput.innerHTML = 'Console cleared.\n';
+        }
+
+        function updateStatus(elementId, status, text) {
+            const el = document.getElementById(elementId);
+            el.className = 'status ' + status;
+            el.textContent = text;
+        }
+
+        // Test 1: Check SDK Loading
+        function checkSDKLoading() {
+            log('=== Checking SDK Loading ===', 'info');
+            
+            if (typeof Fingerprint !== 'undefined') {
+                log('✓ Fingerprint SDK loaded successfully', 'success');
+                updateStatus('sdk-status', 'success', 'Loaded');
+                
+                if (Fingerprint.WebApi) {
+                    log('✓ Fingerprint.WebApi available', 'success');
+                    updateStatus('webapi-status', 'success', 'Available');
+                } else {
+                    log('✗ Fingerprint.WebApi NOT available', 'error');
+                    updateStatus('webapi-status', 'error', 'Not Available');
+                }
+            } else {
+                log('✗ Fingerprint SDK NOT loaded', 'error');
+                updateStatus('sdk-status', 'error', 'Not Loaded');
+                updateStatus('webapi-status', 'error', 'N/A');
+            }
+
+            if (typeof window.FingerprintConfig !== 'undefined') {
+                log('✓ FingerprintConfig loaded', 'success');
+                updateStatus('config-status', 'success', 'Loaded');
+            } else {
+                log('⚠ FingerprintConfig NOT loaded', 'warning');
+                updateStatus('config-status', 'warning', 'Not Loaded');
+            }
+        }
+
+        // Test 2: Environment Info
+        function checkEnvironment() {
+            log('=== Environment Information ===', 'info');
+            
+            document.getElementById('hostname').textContent = window.location.hostname;
+            document.getElementById('protocol').textContent = window.location.protocol;
+            
+            if (window.FingerprintConfig) {
+                const env = window.FingerprintConfig.isProduction ? 'Production' : 'Development';
+                document.getElementById('environment').textContent = env;
+                document.getElementById('websdk-enabled').textContent = window.FingerprintConfig.enableWebSDK ? 'Yes' : 'No';
+                
+                log('Environment: ' + env, 'info');
+                log('WebSDK Enabled: ' + window.FingerprintConfig.enableWebSDK, 'info');
+            } else {
+                document.getElementById('environment').textContent = 'Unknown';
+                document.getElementById('websdk-enabled').textContent = 'Unknown';
+            }
+        }
+
+        // Test 3: Device Detection
+        function testDevices() {
+            log('=== Testing Device Detection ===', 'info');
+            updateStatus('device-status', 'loading', 'Testing...');
+            document.getElementById('device-info').innerHTML = 'Checking for devices...';
+            
+            if (typeof Fingerprint === 'undefined' || !Fingerprint.WebApi) {
+                log('✗ Cannot test - Fingerprint.WebApi not available', 'error');
+                updateStatus('device-status', 'error', 'SDK Not Available');
+                document.getElementById('device-info').innerHTML = '<span style="color: red;">SDK not available</span>';
+                return;
+            }
+
+            try {
+                const sdk = new Fingerprint.WebApi();
+                log('SDK Version: ' + (sdk.Version || 'undefined'), 'info');
+                
+                sdk.enumerateDevices().then(
+                    function(devices) {
+                        log('✓ Device enumeration successful', 'success');
+                        log('Devices found: ' + devices.length, 'info');
+                        
+                        if (devices.length > 0) {
+                            updateStatus('device-status', 'success', devices.length + ' Device(s) Found');
+                            let html = '<strong>Connected Devices:</strong><ul>';
+                            devices.forEach((device, idx) => {
+                                html += '<li>' + device + '</li>';
+                                log('Device ' + (idx + 1) + ': ' + device, 'success');
+                            });
+                            html += '</ul>';
+                            document.getElementById('device-info').innerHTML = html;
+                        } else {
+                            updateStatus('device-status', 'warning', 'No Devices');
+                            document.getElementById('device-info').innerHTML = '<span style="color: orange;">No devices found. This is normal if no reader is connected.</span>';
+                            log('⚠ No devices found', 'warning');
+                        }
+                    },
+                    function(error) {
+                        log('⚠ Device enumeration failed: ' + error.message, 'warning');
+                        updateStatus('device-status', 'warning', 'Enumeration Failed');
+                        document.getElementById('device-info').innerHTML = '<span style="color: orange;">Failed to enumerate devices. This is normal if:<br>- No physical reader is connected<br>- DigitalPersona SDK is not installed<br>- Running remotely without reader</span>';
+                    }
+                );
+            } catch (error) {
+                log('✗ Error: ' + error.message, 'error');
+                updateStatus('device-status', 'error', 'Error');
+                document.getElementById('device-info').innerHTML = '<span style="color: red;">Error: ' + error.message + '</span>';
+            }
+        }
+
+        // Run full diagnostic
+        function runFullDiagnostic() {
+            clearConsole();
+            log('='.repeat(60), 'info');
+            log('FULL DIAGNOSTIC STARTED', 'info');
+            log('='.repeat(60), 'info');
+            checkSDKLoading();
+            checkEnvironment();
+            setTimeout(testDevices, 500);
+        }
+
+        // Auto-run on load
+        window.onload = function() {
+            log('Page loaded. Running initial checks...', 'info');
+            checkSDKLoading();
+            checkEnvironment();
+        };
+    </script>
+</body>
+</html>

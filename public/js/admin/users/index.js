@@ -244,17 +244,23 @@ const state = {
             setTimeout(() => {
                 const newUrl = new URL(window.location.href);
                 newUrl.searchParams.set('enable_reader', 'true');
-                window.fpLog.info('Redirecting to enable reader: ' + newUrl.toString());
+                if (window.fpLog) {
+                    window.fpLog.info('Redirecting to enable reader: ' + newUrl.toString());
+                }
                 window.location.href = newUrl.toString();
             }, 1500);
             
             return;
         }
         
+        // Get test object (from window or global scope)
+        const test = window.test || (typeof test !== 'undefined' ? test : null);
+        
         // Reader should be enabled, check if SDK is available
         if (!test || !test.sdk) {
             if (window.fpLog) {
                 window.fpLog.error('Fingerprint SDK not initialized');
+                window.fpLog.error('test object: ' + (test ? 'exists but no SDK' : 'not found'));
                 window.fpLog.updateStatus(
                     'danger',
                     'Reader Not Available',
@@ -373,6 +379,8 @@ const state = {
             }
         } else {
             // Add current fingerprint to array
+            const currentFingerPrint = window.currentFingerPrint || '';
+            
             if (!currentFingerPrint) {
                 if (window.fpLog) {
                     window.fpLog.warning('No fingerprint captured yet');

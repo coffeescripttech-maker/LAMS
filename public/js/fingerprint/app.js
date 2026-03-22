@@ -7,6 +7,7 @@ var disabled = true;
 var startEnroll = false;
 
 let currentFingerPrint = "";
+window.currentFingerPrint = ""; // Make globally accessible
 
 var currentFormat = Fingerprint.SampleFormat.PngImage;
 var deviceTechn = {
@@ -178,11 +179,18 @@ function compareImages(image1, image2) {
 }
 window.onload = function () {
     localStorage.clear();
-    test = new FingerprintSdkTest();
+    window.test = new FingerprintSdkTest(); // Make test globally accessible
+    test = window.test; // Also assign to local variable for backward compatibility
     readersDropDownPopulate(true); //To populate readers for drop down selection
     disableEnable(); // Disabling enabling buttons - if reader not selected
     enableDisableScanQualityDiv("content-reader"); // To enable disable scan quality div
     disableEnableExport(true);
+    
+    // Log initialization
+    if (window.fpLog) {
+        window.fpLog.info('Fingerprint SDK initialized');
+        window.fpLog.debug('test object available globally as window.test');
+    }
     // Add event listener for compare button
     // document
     //     .getElementById("compareButton")
@@ -426,66 +434,11 @@ function sampleAcquired(s) {
     }
     let _sampleData = Fingerprint.b64UrlTo64(samples[0]);
     currentFingerPrint = _sampleData;
+    window.currentFingerPrint = _sampleData; // Also update global reference
     
     if (window.fpLog) {
         window.fpLog.debug('Sample stored in currentFingerPrint variable');
     }
-}
-    // set array the sample1 up to 5 then sample 2 sample 1 is must be array
-    // if (
-    //     !localStorage.getItem("sample1") ||
-    //     JSON.parse(localStorage.getItem("sample1")).length < 3
-    // ) {
-    //     if (localStorage.getItem("sample1") == null) {
-    //         localStorage.setItem("sample1", JSON.stringify([_sampleData]));
-    //     } else {
-    //         let sample1 = JSON.parse(localStorage.getItem("sample1"));
-    //         sample1.push(_sampleData);
-    //         localStorage.setItem("sample1", JSON.stringify(sample1));
-    //     }
-    //     showMessage(JSON.parse(localStorage.getItem("sample1")).length);
-    // } else if (
-    //     !localStorage.getItem("sample2") ||
-    //     JSON.parse(localStorage.getItem("sample2")).length < 3
-    // ) {
-    //     if (localStorage.getItem("sample2") == null) {
-    //         localStorage.setItem("sample2", JSON.stringify([_sampleData]));
-    //     } else {
-    //         let sample2 = JSON.parse(localStorage.getItem("sample2"));
-    //         sample2.push(_sampleData);
-    //         localStorage.setItem("sample2", JSON.stringify(sample2));
-    //     }
-    //     showMessage(JSON.parse(localStorage.getItem("sample2")).length);
-    // } else {
-    //     let data = [
-    //         {
-    //             id: 1,
-    //             png_base64: JSON.parse(localStorage.getItem("sample1")),
-    //         },
-    //         {
-    //             id: 2,
-    //             png_base64: JSON.parse(localStorage.getItem("sample2")),
-    //         },
-    //     ];
-    //     fetch("http://localhost:5000/identify", {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //         },
-    //         body: JSON.stringify({
-    //             database: data,
-    //             input: _sampleData,
-    //         }),
-    //     })
-    //         .then((res) => res.json())
-    //         .then((data) => {
-    //             if (data.match_found) {
-    //                 showMessage("Fingerprints match!");
-    //             } else {
-    //                 showMessage("Fingerprints do not match.");
-    //             }
-    //         });
-    // }
 }
 
 function readersDropDownPopulate(checkForRedirecting) {
