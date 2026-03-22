@@ -72,6 +72,11 @@
 @endsection
 
 @section('scripts')
+    <script>
+        window.FINGERPRINT_API_URL = '{{ config("fingerprint.api_url") }}';
+    </script>
+    <script src="{{ asset('js/fingerprint/production-config.js') }}"></script>
+    <script src="{{ asset('js/fingerprint/websdk-override.js') }}"></script>
     <script src="{{ asset('js/fingerprint/es6-shim.js') }}"></script>
     <script src="{{ asset('js/fingerprint/websdk.client.bundle.min.js') }}"></script>
     <script src="{{ asset('js/fingerprint/fingerprint.sdk.min.js') }}"></script>

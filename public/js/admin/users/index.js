@@ -213,40 +213,212 @@ const state = {
 
     handleActive: async (i) => {
         state.activeIndex = i;
+        state.fingerprints = []; // Reset fingerprints array
+        
+        // Log system info
+        if (window.fpLog) {
+            window.fpLog.clearLog();
+            window.fpLog.info('=== Fingerprint Enrollment Started ===');
+            window.fpLog.info('User: ' + state.models[i].fname + ' ' + state.models[i].lname);
+            window.fpLog.info('Email: ' + state.models[i].email);
+            window.fpLog.checkSystem();
+        }
+        
+        // Check if we need to enable reader
+        const urlParams = new URLSearchParams(window.location.search);
+        const enableReader = urlParams.get('enable_reader');
+        
+        if (!enableReader && window.FingerprintConfig && !window.FingerprintConfig.enableWebSDK) {
+            // Need to enable reader - show prompt
+            if (window.fpLog) {
+                window.fpLog.warning('Physical reader not enabled');
+                window.fpLog.updateStatus(
+                    'warning',
+                    'Reader Not Enabled',
+                    'Enabling fingerprint reader support...',
+                    true
+                );
+            }
+            
+            // Auto-enable by adding parameter and reloading
+            setTimeout(() => {
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set('enable_reader', 'true');
+                window.fpLog.info('Redirecting to enable reader: ' + newUrl.toString());
+                window.location.href = newUrl.toString();
+            }, 1500);
+            
+            return;
+        }
+        
+        // Reader should be enabled, check if SDK is available
+        if (!test || !test.sdk) {
+            if (window.fpLog) {
+                window.fpLog.error('Fingerprint SDK not initialized');
+                window.fpLog.updateStatus(
+                    'danger',
+                    'Reader Not Available',
+                    'Physical fingerprint reader not detected. Please ensure DigitalPersona SDK is installed and the reader is connected.',
+                    false
+                );
+                window.fpLog.updateButton('Reader Not Available', false, 'danger');
+            }
+            return;
+        }
+        
+        // Check for available readers
+        if (window.fpLog) {
+            window.fpLog.info('Checking for available readers...');
+            window.fpLog.updateStatus('info', 'Checking Reader', 'Detecting fingerprint reader...', true);
+        }
+        
+        test.getInfo().then(
+            function(readers) {
+                if (window.fpLog) {
+                    window.fpLog.success('Found ' + readers.length + ' reader(s)');
+                    readers.forEach((reader, idx) => {
+                        window.fpLog.debug('Reader ' + (idx + 1) + ': ' + reader);
+                    });
+                }
+                
+                if (readers.length > 0) {
+                    if (window.fpLog) {
+                        window.fpLog.success('Reader ready for enrollment');
+                        window.fpLog.updateStatus(
+                            'success',
+                            'Reader Connected',
+                            'Place finger on reader to begin enrollment',
+                            false
+                        );
+                        window.fpLog.updateButton('Next 1', true, 'info');
+                    }
+                } else {
+                    if (window.fpLog) {
+                        window.fpLog.error('No readers detected');
+                        window.fpLog.updateStatus(
+                            'danger',
+                            'No Reader Found',
+                            'Please connect a DigitalPersona fingerprint reader and try again.',
+                            false
+                        );
+                        window.fpLog.updateButton('No Reader', false, 'danger');
+                    }
+                }
+            },
+            function(error) {
+                if (window.fpLog) {
+                    window.fpLog.error('Failed to enumerate readers: ' + error.message, error);
+                    window.fpLog.updateStatus(
+                        'danger',
+                        'Reader Error',
+                        'Failed to detect reader: ' + error.message,
+                        false
+                    );
+                    window.fpLog.updateButton('Reader Error', false, 'danger');
+                }
+            }
+        );
     },
 
     handleFinger: async () => {
-        // $("#progress").attr("aria-valuenow").value =
-        //     state.fingerprints.length * 20;
+        if (window.fpLog) {
+            window.fpLog.info('Fingerprint capture button clicked');
+            window.fpLog.debug('Current fingerprints count: ' + state.fingerprints.length);
+        }
+        
         if (state.fingerprints.length > 4) {
+            // All 5 fingerprints captured, save to server
+            if (window.fpLog) {
+                window.fpLog.info('All 5 fingerprints captured, saving to server...');
+                window.fpLog.updateStatus('info', 'Saving', 'Uploading fingerprints to server...', true);
+                window.fpLog.updateButton('Saving...', false, 'info');
+            }
+            
             let model = state.models[state.activeIndex];
             model.fingeprints = state.fingerprints;
             model.finger_print = "1.png, 2.png, 3.png, 4.png, 5.png";
             let _model = [];
+            
+            // Reset progress bar
             $("#progress").css("width", "0%");
             $("#progress").attr("aria-valuenow", "0%");
             $("#progress").html("0%");
+            
             Object.keys(model).forEach((key) => {
                 if (key !== "id") {
                     _model.push({ name: key, value: model[key] });
                 }
             });
-            await fetch.update(state.entity, model.id, _model);
-            $("#fingerprint-modal").modal("hide");
+            
+            try {
+                await fetch.update(state.entity, model.id, _model);
+                
+                if (window.fpLog) {
+                    window.fpLog.success('Fingerprints saved successfully!');
+                    window.fpLog.updateStatus('success', 'Success', 'Fingerprints enrolled successfully!', false);
+                }
+                
+                // Close modal after short delay
+                setTimeout(() => {
+                    $("#fingerprint-modal").modal("hide");
+                    state.fingerprints = []; // Reset for next enrollment
+                }, 1500);
+                
+            } catch (error) {
+                if (window.fpLog) {
+                    window.fpLog.error('Failed to save fingerprints: ' + error.message, error);
+                    window.fpLog.updateStatus('danger', 'Save Failed', 'Failed to save fingerprints. Please try again.', false);
+                    window.fpLog.updateButton('Retry', true, 'warning');
+                }
+            }
         } else {
-            if (state.fingerprints.length == 4) {
-                $("#fingerprint").html("Save");
+            // Add current fingerprint to array
+            if (!currentFingerPrint) {
+                if (window.fpLog) {
+                    window.fpLog.warning('No fingerprint captured yet');
+                    window.fpLog.showMessage('Please scan your finger first', 'warning');
+                }
+                return;
+            }
+            
+            state.fingerprints.push(currentFingerPrint);
+            const count = state.fingerprints.length;
+            const percentage = count * 20;
+            
+            if (window.fpLog) {
+                window.fpLog.success('Fingerprint ' + count + ' captured');
+                window.fpLog.debug('Progress: ' + percentage + '%');
+            }
+            
+            // Update progress bar
+            $("#progress").css("width", percentage + "%");
+            $("#progress").attr("aria-valuenow", percentage);
+            $("#progress").html(percentage + "%");
+            
+            // Update button text
+            if (count === 4) {
+                if (window.fpLog) {
+                    window.fpLog.info('One more scan needed');
+                    window.fpLog.updateButton("Next 5 (Last)", true, 'warning');
+                }
+            } else if (count === 5) {
+                if (window.fpLog) {
+                    window.fpLog.success('All scans complete! Ready to save');
+                    window.fpLog.updateButton("Save", true, 'success');
+                    window.fpLog.updateStatus('success', 'Complete', 'All 5 fingerprints captured. Click Save to finish.', false);
+                }
             } else {
-                $("#fingerprint").html(
-                    "Next " + (Number(state.fingerprints.length) + 1)
-                );
+                if (window.fpLog) {
+                    window.fpLog.updateButton("Next " + (count + 1), true, 'info');
+                }
+            }
+            
+            // Clear the image for next scan
+            $("#imagediv").empty();
+            if (window.fpLog) {
+                window.fpLog.showMessage('Scan your finger again', 'info');
             }
         }
-
-        state.fingerprints.push(currentFingerPrint);
-        $("#progress").css("width", state.fingerprints.length * 20 + "%");
-        $("#progress").attr("aria-valuenow", state.fingerprints.length * 20);
-        $("#progress").html(state.fingerprints.length * 20 + "%");
     },
 };
 window.addEventListener("load", state.init);

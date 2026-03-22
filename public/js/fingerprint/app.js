@@ -34,6 +34,15 @@ var FingerprintSdkTest = (function () {
         var _instance = this;
         this.operationToRestart = null;
         this.acquisitionStarted = false;
+        
+        // Check if WebSDK should be enabled based on production config
+        if (window.FingerprintConfig && !window.FingerprintConfig.enableWebSDK) {
+            console.warn('Fingerprint WebSDK is disabled. Physical reader not available.');
+            console.info('To enable physical reader, add ?enable_reader=true to the URL');
+            this.sdk = null;
+            return;
+        }
+        
         this.sdk = new Fingerprint.WebApi();
         console.log("SDK Version: " + this.sdk.Version);
         console.log(this.sdk);
@@ -67,6 +76,10 @@ var FingerprintSdkTest = (function () {
     }
 
     FingerprintSdkTest.prototype.startCapture = function () {
+        if (!this.sdk) {
+            showMessage("Fingerprint reader not available. Please add ?enable_reader=true to URL if you have a physical reader.");
+            return;
+        }
         if (this.acquisitionStarted)
             // Monitoring if already started capturing
             return;
@@ -86,6 +99,7 @@ var FingerprintSdkTest = (function () {
         );
     };
     FingerprintSdkTest.prototype.stopCapture = function () {
+        if (!this.sdk) return;
         if (!this.acquisitionStarted)
             //Monitor if already stopped capturing
             return;
@@ -105,11 +119,13 @@ var FingerprintSdkTest = (function () {
     };
 
     FingerprintSdkTest.prototype.getInfo = function () {
+        if (!this.sdk) return Promise.resolve([]);
         var _instance = this;
         return this.sdk.enumerateDevices();
     };
 
     FingerprintSdkTest.prototype.getDeviceInfoWithID = function (uid) {
+        if (!this.sdk) return Promise.resolve(null);
         var _instance = this;
         return this.sdk.getDeviceInfo(uid);
     };
@@ -119,7 +135,13 @@ var FingerprintSdkTest = (function () {
 
 function showMessage(message) {
     var _instance = this;
-    //var statusWindow = document.getElementById("status");
+    
+    // Use new logger if available
+    if (window.fpLog) {
+        window.fpLog.showMessage(message, 'info');
+    }
+    
+    // Legacy support
     x = state.querySelectorAll("#status");
     if (x.length != 0) {
         x[0].innerHTML = message;
@@ -302,6 +324,10 @@ function populateReaders(readersArray) {
     }
 }
 function sampleAcquired(s) {
+    if (window.fpLog) {
+        window.fpLog.info('Fingerprint sample acquired');
+    }
+    
     var samples = JSON.parse(s.samples);
     if (currentFormat == Fingerprint.SampleFormat.PngImage) {
         // If sample acquired format is PNG- perform following call on object received
@@ -312,13 +338,25 @@ function sampleAcquired(s) {
             "imageSrc",
             "data:image/png;base64," + Fingerprint.b64UrlTo64(samples[0])
         );
+        
+        if (window.fpLog) {
+            window.fpLog.success('Fingerprint image captured');
+            window.fpLog.debug('Image size: ' + samples[0].length + ' bytes (base64)');
+        }
+        
         if (state == document.getElementById("content-capture")) {
             var vDiv = document.getElementById("imagediv");
             vDiv.innerHTML = "";
             var image = document.createElement("img");
             image.id = "image";
+            image.className = "img-fluid rounded border border-success";
+            image.style.maxWidth = "300px";
             image.src = localStorage.getItem("imageSrc");
             vDiv.appendChild(image);
+            
+            if (window.fpLog) {
+                window.fpLog.showMessage('Fingerprint captured! Click Next to continue.', 'success');
+            }
         }
 
         disableEnableExport(false);
@@ -381,10 +419,18 @@ function sampleAcquired(s) {
         disableEnableExport(false);
     } else {
         alert("Format Error");
+        if (window.fpLog) {
+            window.fpLog.error('Unknown format error');
+        }
         //disableEnableExport(true);
     }
     let _sampleData = Fingerprint.b64UrlTo64(samples[0]);
     currentFingerPrint = _sampleData;
+    
+    if (window.fpLog) {
+        window.fpLog.debug('Sample stored in currentFingerPrint variable');
+    }
+}
     // set array the sample1 up to 5 then sample 2 sample 1 is must be array
     // if (
     //     !localStorage.getItem("sample1") ||
@@ -503,6 +549,14 @@ function populatePopUpModal() {
 
 //Enable disable buttons
 function disableEnable() {
+    if (!test || !test.sdk) {
+        disabled = true;
+        $("#start").prop("disabled", true);
+        $("#stop").prop("disabled", true);
+        showMessage("Physical fingerprint reader not available. Add ?enable_reader=true to URL if you have a reader connected.");
+        return;
+    }
+    
     if (myVal != "") {
         disabled = false;
         $("#start").prop("disabled", false);
