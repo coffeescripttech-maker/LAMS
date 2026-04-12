@@ -169,7 +169,7 @@ async function sampleAcquired(s) {
     currentFingerPrint = _sampleData;
     // fetch users role student
     let fingerprints = [];
-    await fetch("../api/users/list?key=student")
+    await fetch("/public/users/list?key=student")
         .then((response) => response.json())
         .then((data) => {
             if (data) {
@@ -353,9 +353,15 @@ async function check(_sampleData) {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
+                    "Accept": "application/json",
                 },
             })
-                .then((res) => res.json())
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then((data) => {
                     items = data;
                     isIn = data.filter(

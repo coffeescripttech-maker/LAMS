@@ -72,6 +72,13 @@ Route::prefix('public/attendances')->group(function () {
     Route::post('/save', [App\Http\Controllers\AttendanceController::class, 'save']);
 });
 
+// Public API endpoints for attendance page (no auth required)
+Route::prefix('public')->group(function () {
+    Route::get('/settings', [App\Http\Controllers\SettingController::class, 'index']);
+    Route::get('/sections', [App\Http\Controllers\SectionController::class, 'index']);
+    Route::get('/users/list', [App\Http\Controllers\UserController::class, 'list']);
+});
+
 // Public route to serve fingerprint images
 Route::get('/storage/fingerprints/{email}/{filename}', function ($email, $filename) {
     $path = storage_path('app/public/fingerprints/' . $email . '/' . $filename);

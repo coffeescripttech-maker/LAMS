@@ -61,7 +61,7 @@ const state = {
         $("#tbody").empty();
         $("#row-card").empty();
         $("#card").empty();
-        const setting = await fetch.ask(`../api/settings`);
+        const setting = await fetch.ask(`/public/settings`);
         state.availables = setting[0].available_slots.split(",");
         state.takens = await fetch.ask(`/public/attendances/checkAvailable`);
         state.handleAvail();
@@ -78,7 +78,7 @@ const state = {
             }
         );
 
-        const sections = await fetch.ask("../api/sections");
+        const sections = await fetch.ask("/public/sections");
         state.entity.form[1].options = sections.map((section) => {
             return {
                 value: section.name,
@@ -220,38 +220,72 @@ const state = {
         e.preventDefault();
 
         let params = $("#set-Model").serializeArray();
-        params.push({ name: "status", value: "IN" });
+        
+        // Convert to object
+        let data = {};
+        params.forEach(param => {
+            data[param.name] = param.value;
+        });
+        
+        data.status = "IN";
+        data.date = new Date().toISOString().split("T")[0];
+        data.time = new Date().toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        });
 
-        params.push({
-            name: "date",
-            value: new Date().toISOString().split("T")[0],
-        });
-        params.push({
-            name: "time",
-            value: new Date().toLocaleTimeString("en-GB", {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-            }),
-        });
-        let models = await fetch.store(state.entity, params);
-        $("#card").empty();
-        $("#tbody").empty();
-        state.items.unshift(models);
-        state.items.forEach((attendance, i) => {
-            state.handleWritter(attendance, i);
-        });
-        const val = $("#com_no").val();
-        $("#com_no").empty();
-        state.available_computers
-            .filter((e) => e != val)
-            .forEach((computer) => {
-                $("<option>", {
-                    value: computer,
-                    text: computer,
-                }).appendTo("#com_no");
+        try {
+            const response = await window.fetch("/public/attendances/save", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                body: JSON.stringify(data),
             });
-        $("#main-modal").modal("hide");
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const models = await response.json();
+            
+            $("#card").empty();
+            $("#tbody").empty();
+            state.items.unshift(models);
+            state.items.forEach((attendance, i) => {
+                state.handleWritter(attendance, i);
+            });
+            
+            const val = $("#com_no").val();
+            $("#com_no").empty();
+            state.available_computers
+                .filter((e) => e != val)
+                .forEach((computer) => {
+                    $("<option>", {
+                        value: computer,
+                        text: computer,
+                    }).appendTo("#com_no");
+                });
+            
+            $("#main-modal").modal("hide");
+            
+            Swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: "Attendance recorded successfully",
+                showConfirmButton: false,
+                timer: 1500,
+            });
+        } catch (error) {
+            console.error("Error saving attendance:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to save attendance. Please try again.",
+            });
+        }
     },
 
     handleOut: async (i) => {
@@ -279,6 +313,7 @@ const state = {
                         text: computer,
                     }).appendTo("#com_no");
                 });
+                
                 let model = { ...models[i] };
                 model.status = "OUT";
                 model.time = new Date().toLocaleTimeString("en-GB", {
@@ -288,17 +323,44 @@ const state = {
                 });
                 console.log(state.items);
 
-                let _form = [];
-                Object.keys(model).forEach((key) => {
-                    _form.push({ name: key, value: model[key] });
-                });
-                let updated = await fetch.store(state.entity, _form);
-                $("#card").empty();
-                $("#tbody").empty();
-                state.items.unshift(updated);
-                state.items.forEach((attendance, i) => {
-                    state.handleWritter(attendance, i);
-                });
+                try {
+                    const response = await window.fetch("/public/attendances/save", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json",
+                        },
+                        body: JSON.stringify(model),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const updated = await response.json();
+                    
+                    $("#card").empty();
+                    $("#tbody").empty();
+                    state.items.unshift(updated);
+                    state.items.forEach((attendance, i) => {
+                        state.handleWritter(attendance, i);
+                    });
+                    
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "success",
+                        title: "Checked out successfully",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+                } catch (error) {
+                    console.error("Error checking out:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to check out. Please try again.",
+                    });
+                }
             }
         });
     },

@@ -19,6 +19,11 @@ return
                      \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB
         );
         
+        // Exempt public attendance routes from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'public/*',
+        ]);
+        
         $middleware->group('web', [
             \Illuminate\Cookie\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
