@@ -365,10 +365,15 @@ async function check(_sampleData) {
                         $("#com-modal").modal("show");
                     } else {
                         if (fingerResult.match_found) {
+                            // Get CSRF token
+                            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                            
                             fetch("../api/attendances/save", {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": csrfToken,
+                                    "Accept": "application/json",
                                 },
                                 body: JSON.stringify({
                                     user_id: fingerResult.best_match,
@@ -387,7 +392,12 @@ async function check(_sampleData) {
                                     com_no: isIn.com_no,
                                 }),
                             })
-                                .then((res) => res.json())
+                                .then((res) => {
+                                    if (!res.ok) {
+                                        throw new Error(`HTTP error! status: ${res.status}`);
+                                    }
+                                    return res.json();
+                                })
                                 .then((payload) => {
                                     items.unshift(payload);
                                     $("#card").empty();
@@ -400,6 +410,14 @@ async function check(_sampleData) {
                                         icon: "success",
                                         title: "Success",
                                         text: "Attendance has been recorded.",
+                                    });
+                                })
+                                .catch((error) => {
+                                    console.error("Error saving attendance:", error);
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: "Failed to save attendance. Please try again.",
                                     });
                                 });
                         }
@@ -420,10 +438,15 @@ async function check(_sampleData) {
 
 async function handleComNo(no) {
     if (fingerResult.match_found) {
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
         await fetch("../api/attendances/save", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "X-CSRF-TOKEN": csrfToken,
+                "Accept": "application/json",
             },
             body: JSON.stringify({
                 user_id: fingerResult.best_match,
@@ -437,7 +460,12 @@ async function handleComNo(no) {
                 com_no: no,
             }),
         })
-            .then((res) => res.json())
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then((payload) => {
                 items.unshift(payload);
                 $("#card").empty();
