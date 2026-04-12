@@ -63,10 +63,10 @@ const state = {
         $("#card").empty();
         const setting = await fetch.ask(`../api/settings`);
         state.availables = setting[0].available_slots.split(",");
-        state.takens = await fetch.ask(`../api/attendances/checkAvailable`);
+        state.takens = await fetch.ask(`/public/attendances/checkAvailable`);
         state.handleAvail();
         state.available_computers = await fetch.ask(
-            "../api/attendances/checkAvailable"
+            "/public/attendances/checkAvailable"
         );
 
         state.entity.form[2].options = state.available_computers.map(
@@ -90,7 +90,7 @@ const state = {
             text: "Select Section",
         });
         fetch.formWritter(state.entity.form, "attendance");
-        state.items = await fetch.ask("./api/attendances/today");
+        state.items = await fetch.ask("/public/attendances/today");
         state.items.forEach((attendance, i) => {
             state.handleWritter(attendance, i);
         });

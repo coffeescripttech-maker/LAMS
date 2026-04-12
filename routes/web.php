@@ -65,6 +65,43 @@ Route::get('/attendance', function () {
     return view("attendance/index");
 })->name('attendance');
 
+// Public attendance API endpoints (no auth required)
+Route::prefix('public/attendances')->group(function () {
+    Route::get('/today', [App\Http\Controllers\AttendanceController::class, 'today']);
+    Route::get('/checkAvailable', [App\Http\Controllers\AttendanceController::class, 'checkAvailable']);
+    Route::post('/save', [App\Http\Controllers\AttendanceController::class, 'save']);
+});
+
+// Public route to serve fingerprint images
+Route::get('/storage/fingerprints/{email}/{filename}', function ($email, $filename) {
+    $path = storage_path('app/public/fingerprints/' . $email . '/' . $filename);
+    
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    
+    return response()->file($path, [
+        'Content-Type' => 'image/png',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
+})->where('filename', '.*');
+
+// Public route to serve credential images (avatars)
+Route::get('/storage/credentials/{email}/{filename}', function ($email, $filename) {
+    $path = storage_path('app/public/credentials/' . $email . '/' . $filename);
+    
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    
+    $mimeType = mime_content_type($path);
+    
+    return response()->file($path, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
+})->where('filename', '.*');
+
 Route::group(['middleware' => ['auth']], function () {
     Route::get('/user/profile', function () {
         return view('components.profile.index');

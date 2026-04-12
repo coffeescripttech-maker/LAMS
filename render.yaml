@@ -6,6 +6,11 @@ services:
     repo: https://github.com/coffeescripttech-maker/LAMS
     branch: main
     dockerfilePath: ./Dockerfile
+    # Persistent disk for storage (uploaded files)
+    disk:
+      name: lams-storage
+      mountPath: /var/www/html/storage/app/public
+      sizeGB: 1
     envVars:
       - key: APP_ENV
         value: production

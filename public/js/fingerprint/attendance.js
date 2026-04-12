@@ -349,7 +349,7 @@ async function check(_sampleData) {
         .then(async (dd) => {
             fingerResult = dd;
             data = [];
-            fetch("../api/attendances/today", {
+            fetch("/public/attendances/today", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -368,7 +368,7 @@ async function check(_sampleData) {
                             // Get CSRF token
                             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
                             
-                            fetch("../api/attendances/save", {
+                            fetch("/public/attendances/save", {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
@@ -441,7 +441,7 @@ async function handleComNo(no) {
         // Get CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-        await fetch("../api/attendances/save", {
+        await fetch("/public/attendances/save", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
